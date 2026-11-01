@@ -272,16 +272,20 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const currentMonthStats = useMemo(() => {
     let income = 0;
     let expense = 0;
+    let budgetSpent = 0;
+    const budgetedCategories = new Set<string>(budgets.map((b) => b.category));
     for (const tx of transactions) {
       if (tx.date.startsWith(currentMonthKey)) {
         if (tx.type === 'income') income += tx.amount;
-        else expense += tx.amount;
+        else {
+          expense += tx.amount;
+          if (budgetedCategories.has(tx.category)) budgetSpent += tx.amount;
+        }
       }
     }
     const net = income - expense;
     const savingsRate = income > 0 ? Math.max(0, (net / income) * 100) : 0;
     const budgetTotal = budgets.reduce((acc, b) => acc + b.limit, 0);
-    const budgetSpent = expense;
     const budgetRemaining = Math.max(0, budgetTotal - budgetSpent);
     return {
       income,

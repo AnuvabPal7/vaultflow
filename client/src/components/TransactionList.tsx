@@ -389,7 +389,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                             : 'text-slate-900 dark:text-slate-100'
                         }`}
                       >
-                        {formatCurrency(tx.amount, { showSign: true })}
+                        {formatCurrency(isIncome ? tx.amount : -tx.amount, { showSign: true })}
                       </span>
                     </td>
                     <td className="py-3 px-3 text-right whitespace-nowrap">

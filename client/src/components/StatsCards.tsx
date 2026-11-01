@@ -42,7 +42,7 @@ export const StatsCards: React.FC<{ onOpenBudgetModal: () => void; onOpenAddModa
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            Monthly Income
+            Total Income
           </span>
           <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
             <ArrowUpRight className="w-4 h-4" />
@@ -66,7 +66,7 @@ export const StatsCards: React.FC<{ onOpenBudgetModal: () => void; onOpenAddModa
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            Monthly Expenses
+            Total Expenses
           </span>
           <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
             <ArrowDownRight className="w-4 h-4" />

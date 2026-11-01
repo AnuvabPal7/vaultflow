@@ -105,9 +105,9 @@ export const MonthlyTrendsBarChart: React.FC = () => {
                 tick={{ fontSize: 11, fill: '#94a3b8' }}
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(val) => `$${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
+                tickFormatter={(val) => formatCurrency(val, { compact: true })}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(148,163,184,0.1)" }} />
               <Bar dataKey="income" name="Income" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={28} />
               <Bar dataKey="expense" name="Expense" fill="#f43f5e" radius={[4, 4, 0, 0]} maxBarSize={28} />
             </BarChart>
