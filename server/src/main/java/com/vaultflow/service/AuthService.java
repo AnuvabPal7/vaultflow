@@ -3,6 +3,7 @@ package com.vaultflow.service;
 import com.vaultflow.dto.AuthResponse;
 import com.vaultflow.dto.LoginRequest;
 import com.vaultflow.dto.RegisterRequest;
+import com.vaultflow.dto.UpdateProfileRequest;
 import com.vaultflow.dto.UserDto;
 import com.vaultflow.exception.BadRequestException;
 import com.vaultflow.exception.ResourceNotFoundException;
@@ -71,6 +72,15 @@ public class AuthService {
 
         String token = jwtUtils.generateTokenFromUserIdAndEmail(user.getId(), user.getEmail());
         return new AuthResponse(token, UserDto.fromEntity(user));
+    }
+
+    public UserDto updateProfile(String userId, UpdateProfileRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+        user.setName(request.getName().trim());
+        user.setCurrencyCode(request.getCurrencyCode());
+        user.setStartingBalance(request.getStartingBalance());
+        return UserDto.fromEntity(userRepository.save(user));
     }
 
     public UserDto getCurrentUser(String userId) {

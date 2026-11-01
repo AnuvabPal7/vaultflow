@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { CURRENCIES } from '../data/mockData';
 import { X, User, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { apiClient } from '../api/client';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -18,16 +19,22 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
 
   if (!isOpen || !user) return null;
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const balanceNum = parseFloat(startingBalance);
-    updateLocalUserState({
-      name: name.trim() || user.name,
-      currencyCode,
-      startingBalance: isNaN(balanceNum) ? 0 : balanceNum,
-    });
-    toast.success('Preferences updated');
-    onClose();
+    const safeBalance = isNaN(balanceNum) ? 0 : balanceNum;
+    if (safeBalance < 0) {
+      toast.error('Starting balance cannot be negative');
+      return;
+    }
+    try {
+      const updated = await apiClient.updateProfile(name.trim() || user.name, currencyCode, safeBalance);
+      updateLocalUserState(updated);
+      toast.success('Preferences saved');
+      onClose();
+    } catch (err: any) {
+      toast.error(err?.message || 'Could not save preferences');
+    }
   };
 
   return (

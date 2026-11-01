@@ -3,6 +3,7 @@ package com.vaultflow.controller;
 import com.vaultflow.dto.AuthResponse;
 import com.vaultflow.dto.LoginRequest;
 import com.vaultflow.dto.RegisterRequest;
+import com.vaultflow.dto.UpdateProfileRequest;
 import com.vaultflow.dto.UserDto;
 import com.vaultflow.security.UserPrincipal;
 import com.vaultflow.service.AuthService;
@@ -32,6 +33,12 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserDto> updateProfile(@AuthenticationPrincipal UserPrincipal principal,
+                                                 @Valid @RequestBody UpdateProfileRequest request) {
+        return ResponseEntity.ok(authService.updateProfile(principal.getId(), request));
     }
 
     @GetMapping("/me")

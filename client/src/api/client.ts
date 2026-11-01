@@ -128,6 +128,13 @@ export const apiClient = {
     });
   },
 
+  async updateProfile(name: string, currencyCode: string, startingBalance: number): Promise<User> {
+    return await apiFetch<User>('/api/auth/me', {
+      method: 'PUT',
+      body: JSON.stringify({ name, currencyCode, startingBalance }),
+    });
+  },
+
   // Transactions Endpoints
   async fetchTransactions(filters?: {
     startDate?: string;
