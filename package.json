@@ -1,0 +1,9 @@
+{
+  "name": "vaultflow",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "cd client && npm run dev -- --port 3000 --host 0.0.0.0",
+    "build": "cd client && npm run build"
+  }
+}

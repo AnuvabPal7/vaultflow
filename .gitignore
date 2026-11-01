@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production build outputs
+dist/
+build/
+target/
+*.jar
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+client/.env
+client/.env.*
+!client/.env.example
+server/.env
+server/.env.*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Editor & OS artifacts
+.DS_Store
+.idea/
+*.iml
+.vscode/
+Thumbs.db
