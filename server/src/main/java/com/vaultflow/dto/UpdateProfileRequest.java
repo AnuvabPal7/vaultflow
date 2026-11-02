@@ -11,7 +11,8 @@ import java.math.BigDecimal;
 public class UpdateProfileRequest {
 
     @NotBlank(message = "Name is required")
-    @Size(max = 100, message = "Name must be at most 100 characters")
+    @Pattern(regexp = "^\\p{L}[\\p{L}\\p{M} .'\\u2019-]{1,49}$",
+             message = "Name can only contain letters, spaces, hyphens, apostrophes and periods, and must be 2 to 50 characters long")
     private String name;
 
     @NotBlank(message = "Currency code is required")

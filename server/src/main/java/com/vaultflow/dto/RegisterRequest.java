@@ -3,6 +3,7 @@ package com.vaultflow.dto;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
@@ -10,6 +11,8 @@ import java.math.BigDecimal;
 public class RegisterRequest {
 
     @NotBlank(message = "Name is required")
+    @Pattern(regexp = "^\\p{L}[\\p{L}\\p{M} .'\\u2019-]{1,49}$",
+             message = "Name can only contain letters, spaces, hyphens, apostrophes and periods, and must be 2 to 50 characters long")
     private String name;
 
     @NotBlank(message = "Email is required")
@@ -17,7 +20,7 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "Password is required")
-    @Size(min = 8, message = "Password must be at least 8 characters long")
+    @Size(min = 8, max = 72, message = "Password must be between 8 and 72 characters long")
     private String password;
 
     private String currencyCode;

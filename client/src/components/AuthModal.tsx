@@ -3,6 +3,17 @@ import { useAuth } from '../context/AuthContext';
 import { ShieldCheck, Lock, Mail, User, ArrowRight, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const NAME_PATTERN = /^\p{L}[\p{L}\p{M} .'\u2019-]{1,49}$/u;
+const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+const validateName = (value: string): string | null => {
+  if (!value) return 'Please enter your full name.';
+  if (/\d/.test(value)) return 'Name cannot contain numbers.';
+  if (value.length < 2 || value.length > 50) return 'Name must be between 2 and 50 characters.';
+  if (!NAME_PATTERN.test(value)) return "Name can only contain letters, spaces, hyphens, apostrophes and periods.";
+  return null;
+};
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose?: () => void;
@@ -23,18 +34,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setError('');
 
     if (mode === 'signup') {
-      if (!name.trim()) {
-        setError('Please enter your full name.');
+      const cleanName = name.trim().replace(/\s+/g, ' ');
+      const cleanEmail = email.trim();
+
+      const nameError = validateName(cleanName);
+      if (nameError) {
+        setError(nameError);
+        return;
+      }
+      if (!EMAIL_PATTERN.test(cleanEmail)) {
+        setError('Please enter a valid email address, like name@example.com.');
         return;
       }
       if (password.length < 8) {
-        setError('Password must be at least 8 characters long as required by security policy.');
+        setError('Password must be at least 8 characters long.');
+        return;
+      }
+      if (password.length > 72) {
+        setError('Password must be 72 characters or fewer.');
         return;
       }
 
-      const res = await signup(name, email, password);
+      const res = await signup(cleanName, cleanEmail, password);
       if (res.success) {
-        toast.success(`Account created! Welcome, ${name}.`);
+        toast.success(`Account created! Welcome, ${cleanName}.`);
         if (onClose) onClose();
       } else {
         setError(res.error || 'Registration failed.');
@@ -108,7 +131,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-3.5">
+        <form onSubmit={handleSubmit} noValidate className="space-y-3.5">
           {mode === 'signup' && (
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -120,6 +143,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   type="text"
                   required
                   placeholder="e.g., Alex Mercer"
+                  maxLength={50}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-slate-900"

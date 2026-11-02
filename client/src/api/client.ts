@@ -87,7 +87,9 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
     throw new ApiException(
       res.status,
       errorData.error || 'Request Failed',
-      errorData.message || `Request failed with status ${res.status}`,
+      (Array.isArray(errorData.details) && errorData.details.length > 0
+        ? Array.from(new Set<string>(errorData.details.map((d: string) => d.replace(/^\w+:\s*/, '')))).join(' ')
+        : errorData.message) || `Request failed with status ${res.status}`,
       errorData.details
     );
   }
