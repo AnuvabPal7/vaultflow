@@ -1,279 +1,292 @@
 # VaultFlow - Personal Finance & Budget Tracker
 
-A production-grade, full-stack personal finance and budget tracker web application featuring a **Spring Boot 3 (Java 17)** RESTful backend with **JWT authentication** and **MongoDB (Spring Data MongoDB)** persistence, coupled with a responsive **React (TypeScript)** and **Tailwind CSS** frontend with **Recharts** visualizations and **react-hot-toast** notifications.
+A full-stack personal finance tracker. Users register, log in, record income and expenses, set monthly category budgets, and see charts of where their money goes. Every user only ever sees their own data.
+
+- **Backend:** Spring Boot 3 (Java 17), Spring Security with real JWT authentication, Spring Data MongoDB
+- **Frontend:** React (TypeScript), Tailwind CSS, Recharts, react-hot-toast
+- **Database:** MongoDB Atlas
+- **Hosting:** Vercel (frontend), Render with Docker (backend)
 
 ---
 
-## 🏗️ Architecture & Project Layout
+## Live Demo
 
-The repository is structured into distinct, self-contained `client/` and `server/` directories following clean architectural separation:
+**https://vaultflow-zeta.vercel.app/**
+
+The backend runs on Render's free tier, which sleeps when idle. The first request after a quiet period can take 30 to 60 seconds. Please wait for the first login or signup to finish, and the rest is fast.
+
+<!--
+## Screenshots
+Add images to docs/screenshots/ and uncomment these lines:
+![Dashboard](docs/screenshots/dashboard.png)
+![Budgets](docs/screenshots/budgets.png)
+![Transactions](docs/screenshots/transactions.png)
+-->
+
+---
+
+## Features
+
+- **Accounts:** register and log in with email and password (JWT). Passwords are hashed with BCrypt.
+- **Transactions:** add, edit and delete income and expenses with category, date, note and payment method.
+- **Search, filter and sort:** by text, type, category and date range, with server-side filtering.
+- **Charts:** category breakdown (donut chart) and income vs. expenses by month (bar chart).
+- **Budgets:** set a monthly cap per expense category and see how much is used.
+- **Summary cards:** net balance, total income, total expenses, savings rate.
+- **Profile settings:** name, currency and starting balance, saved to the database.
+- **Export:** CSV, JSON and a printable statement.
+- **Dark and light mode**, responsive layout for phone, tablet and desktop.
+
+---
+
+## Architecture & Project Layout
 
 ```text
 vaultflow/
-├── client/                               # Frontend Single Page Application
-│   ├── package.json                      # React 19, Vite, Recharts, react-hot-toast
-│   ├── index.html                        # Application entry HTML
-│   ├── vite.config.ts                    # Vite build & dev configuration
-│   ├── tsconfig.json                     # TypeScript compiler configuration
-│   ├── vercel.json                       # Vercel SPA routing configuration
-│   ├── .env.example                      # Client environment variables template
-│   ├── .gitignore                        # Client gitignore
-│   ├── README.md                         # Client overview linking to root README
+├── client/                                # React single page application
+│   ├── package.json
+│   ├── vite.config.ts
+│   ├── vercel.json                        # SPA rewrite rules for Vercel
+│   ├── .env.example                       # VITE_API_URL template
 │   └── src/
-│       ├── api/
-│       │   └── client.ts                 # Real REST client (Bearer token, 401 interceptor, no dummy fallbacks)
+│       ├── api/client.ts                  # REST client: Bearer token, 401 handling, readable error messages
 │       ├── components/
-│       │   ├── charts/
-│       │   │   ├── CategoryPieChart.tsx  # Recharts Donut/Pie chart for category spending
-│       │   │   └── MonthlyTrendsBarChart.tsx # Recharts Bar chart for income vs. expense trends
-│       │   ├── AuthModal.tsx             # Real JWT registration & login dialog
-│       │   ├── BudgetManagerModal.tsx    # Monthly spending cap manager
-│       │   ├── BudgetSection.tsx         # Real-time category budget status & pace
-│       │   ├── ExportModal.tsx           # CSV, JSON, and print statement exporter
-│       │   ├── Navbar.tsx                # 3-Zone navigation header & dark/light mode
-│       │   ├── ProfileModal.tsx          # User profile settings & Dev-only token inspector
-│       │   ├── StatsCards.tsx            # Net balance, monthly income, monthly expenses, savings rate
-│       │   └── TransactionList.tsx       # Paginated transactions with server-side filters & sorting
+│       │   ├── charts/                    # CategoryPieChart, MonthlyTrendsBarChart (Recharts)
+│       │   ├── AuthModal.tsx              # Login and signup with client-side validation
+│       │   ├── BudgetManagerModal.tsx
+│       │   ├── BudgetSection.tsx
+│       │   ├── ExportModal.tsx
+│       │   ├── Navbar.tsx
+│       │   ├── ProfileModal.tsx           # Saves profile via PUT /api/auth/me
+│       │   ├── StatsCards.tsx
+│       │   ├── TransactionFormModal.tsx
+│       │   └── TransactionList.tsx
 │       ├── context/
-│       │   ├── AuthContext.tsx           # React Context API for JWT authentication state
-│       │   └── FinanceContext.tsx        # React Context API for transactions, budgets & analytics
-│       ├── data/
-│       │   └── mockData.ts               # Category metadata, palette colors, currencies
-│       ├── types.ts                      # Shared TypeScript definitions
-│       ├── App.tsx                       # Dashboard layout & routing
-│       └── main.tsx                      # DOM root mount
+│       │   ├── AuthContext.tsx            # Login state and token
+│       │   └── FinanceContext.tsx         # Transactions, budgets and analytics
+│       ├── data/mockData.ts               # Category metadata, colors, currencies
+│       ├── types.ts
+│       ├── App.tsx
+│       └── main.tsx
 │
-├── server/                               # Backend RESTful API (Spring Boot 3 + Java 17)
-│   ├── pom.xml                           # Maven dependencies (Web, Security, Data MongoDB, Validation, JJWT)
-│   ├── Dockerfile                        # Multi-stage container build (Maven -> JRE 17)
-│   ├── .dockerignore                     # Docker build exclusion rules
-│   ├── .gitignore                        # Git exclusion rules for server (target/, .env, IDE)
-│   ├── mvnw / mvnw.cmd                   # Maven wrapper executables
-│   ├── .mvn/wrapper/                     # Maven wrapper configuration
-│   ├── README.md                         # Server overview linking to root README
+├── server/                                # Spring Boot REST API
+│   ├── pom.xml
+│   ├── Dockerfile                         # Multi-stage build: Maven, then JRE 17
+│   ├── .dockerignore
+│   ├── .gitignore
+│   ├── mvnw / mvnw.cmd                    # Maven wrapper (no Maven install needed)
 │   └── src/
 │       ├── main/
 │       │   ├── java/com/vaultflow/
-│       │   │   ├── VaultFlowApplication.java # Spring Boot entry point
-│       │   │   ├── config/
-│       │   │   │   └── SecurityConfig.java   # Spring Security filter chain, CORS, stateless session
-│       │   │   ├── controller/               # Controller Layer
-│       │   │   │   ├── AuthController.java   # /api/auth (register, login, me)
-│       │   │   │   ├── TransactionController.java # /api/transactions CRUD & filtering
-│       │   │   └── BudgetController.java     # /api/budgets CRUD
-│       │   │   ├── service/                  # Service Layer
-│       │   │   │   ├── AuthService.java      # BCrypt hashing, JWT generation, credentials check
-│       │   │   │   ├── TransactionService.java # User-scoped queries, Pattern.quote literal search
-│       │   │   └── BudgetService.java        # User-scoped budget management & race handling
-│       │   │   ├── repository/               # Repository Layer (Spring Data MongoDB)
-│       │   │   │   ├── UserRepository.java   # MongoRepository for User documents
-│       │   │   │   ├── TransactionRepository.java # MongoRepository for Transaction documents
-│       │   │   └── BudgetRepository.java     # MongoRepository for Budget documents
-│       │   │   ├── model/                    # MongoDB Document Models
-│       │   │   │   ├── User.java             # @Document(collection = "users"), BigDecimal balance
-│       │   │   │   ├── Transaction.java      # @Document(collection = "transactions"), BigDecimal amount, LocalDate date
-│       │   │   └── Budget.java               # @Document(collection = "budgets"), unique (userId, category) index
-│       │   │   ├── dto/                      # Data Transfer Objects & Validation
-│       │   │   │   ├── RegisterRequest.java  # @NotBlank, @Email, @Size(min=8)
-│       │   │   │   ├── LoginRequest.java     # @NotBlank, @Email
-│       │   │   │   ├── AuthResponse.java     # Token + UserDto
-│       │   │   │   ├── UserDto.java          # Sanitized user response (no password)
-│       │   │   │   ├── TransactionRequest.java # @NotNull, @Positive BigDecimal amount, LocalDate date
-│       │   │   │   ├── BudgetRequest.java    # @NotBlank, @DecimalMin(0) BigDecimal limit
-│       │   │   └── ErrorResponse.java        # Standard JSON error payload
-│       │   │   ├── security/                 # Security & JWT Processing
-│       │   │   │   ├── JwtUtils.java         # HMAC-SHA256 signature, startup length validation
-│       │   │   │   ├── JwtAuthFilter.java    # OncePerRequestFilter extracting Bearer tokens
-│       │   │   │   ├── UserPrincipal.java    # UserDetails implementation
-│       │   │   └── CustomUserDetailsService.java
-│       │   │   └── exception/                # Exception Handling
-│       │   │       ├── GlobalExceptionHandler.java # Handlers for 400, 401, 404, 405, 409 DuplicateKey, generic 500
-│       │   │       ├── ResourceNotFoundException.java
-│       │   │       ├── UnauthorizedException.java
-│       │   │       ├── ForbiddenException.java
-│       │   │       └── BadRequestException.java
-│       │   └── resources/
-│       │       └── application.properties    # Environment-driven properties (no default JWT secret, decimal128)
-│       └── test/                             # Automated Test Suite (36 passing tests)
-│           ├── java/com/vaultflow/
-│           │   ├── controller/
-│           │   │   ├── AuthControllerTest.java # 7 tests: register, login, duplicate key 409, generic 500
-│           │   │   ├── TransactionSecurityIntegrationTest.java # 8 tests: real filter, 401s, 404s, malformed JSON 400, bad calendar date 400, wrong method 405
-│           │   │   ├── TransactionControllerTest.java # 7 tests: 401 without token, user isolation 404, date filter 400s, validation
-│           │   │   └── BudgetControllerTest.java # 6 tests: 401 without token, create/update, race recovery, user isolation 404
-│           │   ├── service/
-│           │   │   └── TransactionServiceTest.java # 4 tests: ArgumentCaptor Pattern.quote queries and date filter format checks
-│           │   └── security/
-│           │       └── JwtUtilsTest.java     # 4 tests: claims, signature tampering, expiration, short key startup error
-│           └── resources/
-│               └── application-test.properties # Test-only properties
+│       │   │   ├── VaultFlowApplication.java
+│       │   │   ├── config/SecurityConfig.java       # Filter chain, CORS, stateless sessions
+│       │   │   ├── controller/                      # AuthController, TransactionController, BudgetController
+│       │   │   ├── service/                         # AuthService, TransactionService, BudgetService
+│       │   │   ├── repository/                      # User, Transaction and Budget repositories
+│       │   │   ├── model/                           # User, Transaction, Budget documents
+│       │   │   ├── dto/                             # Request/response objects with validation
+│       │   │   ├── security/                        # JwtUtils, JwtAuthFilter, UserPrincipal, CustomUserDetailsService
+│       │   │   └── exception/                       # GlobalExceptionHandler and custom exceptions
+│       │   └── resources/application.properties
+│       └── test/                                    # Automated tests (see below)
 │
-├── .env.example                          # Environment template with placeholder secrets
-├── .gitignore                            # Root gitignore
-└── README.md                             # Comprehensive documentation
+├── .env.example                           # Environment template with placeholder values
+├── .gitignore
+└── README.md
+```
+
+The backend follows a **Controller → Service → Repository** layering. Controllers handle HTTP and validation, services hold the business rules, and repositories talk to MongoDB.
+
+---
+
+## API Reference
+
+All `/api/**` endpoints require `Authorization: Bearer <token>`, except register and login.
+
+| Method | Endpoint | Purpose |
+| :--- | :--- | :--- |
+| POST | `/api/auth/register` | Create an account and receive a token |
+| POST | `/api/auth/login` | Log in and receive a token |
+| GET | `/api/auth/me` | Get the current user |
+| PUT | `/api/auth/me` | Update name, currency and starting balance |
+| GET | `/api/transactions` | List transactions. Query: `startDate`, `endDate`, `category`, `type`, `search` |
+| GET | `/api/transactions/{id}` | Get one transaction |
+| POST | `/api/transactions` | Add a transaction |
+| PUT | `/api/transactions/{id}` | Update a transaction |
+| DELETE | `/api/transactions/{id}` | Delete a transaction |
+| GET | `/api/budgets` | List category budgets |
+| POST | `/api/budgets` | Create or update a category budget |
+| DELETE | `/api/budgets/{id}` | Delete a budget |
+
+Errors are returned as JSON with `status`, `error`, `message`, `path` and, for validation problems, a `details` list that names each field and the reason.
+
+---
+
+## Security Design
+
+1. **No default JWT secret.** `vaultflow.jwt.secret=${JWT_SECRET}` has no fallback, so the server refuses to start without it.
+2. **Key length check at startup.** `JwtUtils` verifies the secret is at least 32 bytes and fails fast otherwise. There is no silent padding.
+3. **BCrypt password hashing.** Passwords are never stored in plain text. Signup requires 8 to 72 characters (BCrypt ignores anything past 72 bytes, so longer passwords are rejected).
+4. **Real HMAC-SHA256 JWTs** (JJWT 0.12) with an expiry. Forged, tampered, expired and unknown-user tokens return `401`.
+5. **Stateless filter on every route** except register and login.
+6. **The user always comes from the token**, never from a request parameter or body. Every query and delete is scoped to that user id.
+7. **No information leak on ownership.** Asking for another user's transaction or budget returns `404`, the same as a record that doesn't exist, so ids cannot be enumerated.
+8. **Regex injection protection.** Search text is wrapped in `Pattern.quote()`, so characters such as `(` or `.*` are treated as plain text.
+9. **Input validation.** Names may contain only letters (including non-Latin scripts), spaces, hyphens, apostrophes and periods, 2 to 50 characters. Amounts must be positive, dates must be real calendar dates, and currency codes must be three letters.
+10. **Duplicate handling.** A concurrent signup with the same email or a concurrent insert of the same budget is caught and handled instead of returning a server error.
+11. **Safe error responses.** Bad input returns 400, wrong methods 405, unknown paths 404. Unexpected exceptions are logged on the server and the client only sees a generic message, never a stack trace.
+12. **Money uses `BigDecimal`** (stored as Decimal128 in MongoDB) to avoid floating-point rounding errors.
+13. **Token inspector is development only** (`import.meta.env.DEV`).
+
+---
+
+## Environment Variables
+
+| Variable | Where | Description | Example |
+| :--- | :--- | :--- | :--- |
+| `MONGODB_URI` | server | MongoDB connection string | `mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/vaultflow?retryWrites=true&w=majority` |
+| `JWT_SECRET` | server | Signing key, at least 32 bytes | generate it, see below |
+| `JWT_EXPIRATION_MS` | server | Token lifetime in ms (optional, default 7 days) | `604800000` |
+| `CORS_ALLOWED_ORIGINS` | server | Comma-separated frontend origins, no trailing slash | `http://localhost:5173,https://your-app.vercel.app` |
+| `PORT` | server | Set automatically by Render. Defaults to 8080 locally | `8080` |
+| `VITE_API_URL` | client | Backend base URL | `http://localhost:8080` |
+
+Never commit real values. `.env` files are git-ignored.
+
+**Generate a secret**
+
+Linux, macOS or Git Bash:
+```bash
+openssl rand -hex 32
+```
+
+Windows PowerShell:
+```powershell
+$bytes = New-Object byte[] 32
+[Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+($bytes | ForEach-Object { $_.ToString("x2") }) -join ""
 ```
 
 ---
 
-## 🔒 Security Architecture (Strict & Genuine)
+## Running Locally
 
-1. **No Default JWT Secret**: `vaultflow.jwt.secret=${JWT_SECRET}` in `application.properties` has no fallback default. The server refuses to boot if `JWT_SECRET` is unset.
-2. **Startup Key Validation**: `JwtUtils.@PostConstruct` verifies that the secret is at least 32 bytes (256 bits). If shorter, it throws an `IllegalStateException` immediately at startup (no silent zero-padding).
-3. **Passwords Hashed with BCrypt**: Passwords are never stored in plain text. During registration (`POST /api/auth/register`), passwords require at least 8 characters and are hashed with `BCryptPasswordEncoder`.
-4. **Real HMAC-SHA256 JWT**: JWTs are created and verified using `io.jsonwebtoken` (JJWT 0.12.x) with the 256-bit key from `JWT_SECRET` and a strict expiry timestamp (`JWT_EXPIRATION_MS`).
-5. **Stateless Spring Security Filter**: Every request to `/api/**` (except `/api/auth/register`, `/api/auth/login`, and `/api/health`) is checked by `JwtAuthFilter`. Missing, forged, expired, or foreign-key tokens return `401 Unauthorized`.
-6. **Strict User Scoping & Zero-Trust Client IDs**: Endpoints never accept a `userId` from client parameters. The authenticated user ID is obtained solely from `@AuthenticationPrincipal UserPrincipal principal`.
-7. **No Information Leak on Ownership**: Inquiries or deletion attempts for unowned transactions or budgets return `404 Not Found` (identical to non-existent IDs), preventing attackers from enumerating valid IDs.
-8. **Regex Injection Protection**: Search queries in `TransactionService.getTransactions` wrap the user input with `java.util.regex.Pattern.quote()` to ensure regex metacharacters (`(`, `.*`, `[`) are evaluated as plain literals without crashing or bypassing criteria. Verified via unit test inspecting the captured Mongo `Query`.
-9. **Duplicate Key Race Handling**: A concurrent registration attempt triggering MongoDB's unique email index is caught by `AuthService.register`, returning a specific error message. In `BudgetService.setBudget`, a `DuplicateKeyException` from concurrent inserts is caught, and the service re-reads and updates the existing record gracefully.
-10. **Sanitized 500 Errors & Specific Bad Input Handlers**: `GlobalExceptionHandler` handles `HttpMessageNotReadableException` (400), `MethodArgumentTypeMismatchException` (400), `MissingServletRequestParameterException` (400), `HttpRequestMethodNotSupportedException` (405), and `NoResourceFoundException` (404). Generic exceptions log the full stack trace server-side with `logger.error(..., ex)` and return only a safe message (`"An unexpected error occurred"`).
-11. **Dev-Only Token Inspector**: In `ProfileModal.tsx`, the token inspector is conditionally rendered only when `import.meta.env.DEV` is true.
+### Prerequisites
+- Java 17 or newer (`java -version`)
+- Node.js 18 or newer and npm
+- A MongoDB connection string (free [MongoDB Atlas](https://www.mongodb.com/atlas) cluster, see "Database Setup")
 
----
+The Maven wrapper is included, so you do not need to install Maven.
 
-## ⚙️ Environment Variables
+### 1. Backend
 
-Copy `.env.example` to configure your environment:
-
-| Variable | Description | Example / Required |
-| :--- | :--- | :--- |
-| `MONGODB_URI` | MongoDB Atlas or local connection string | `mongodb+srv://<user>:<pass>@cluster.mongodb.net/vaultflow` |
-| `JWT_SECRET` | 256-bit secret key for HMAC-SHA256 | `<generate with: openssl rand -hex 32>` (Must be at least 32 bytes) |
-| `JWT_EXPIRATION_MS` | Token lifespan in milliseconds (7 days) | `604800000` |
-| `PORT` | Backend server port | `8080` |
-| `CORS_ALLOWED_ORIGINS`| Comma-separated list of allowed frontend URLs | `http://localhost:3000,http://localhost:5173,https://your-vaultflow.vercel.app` |
-| `VITE_API_URL` | Frontend API target URL (empty for same-origin proxy) | `http://localhost:8080` |
-
----
-
-## 🚀 Running Locally
-
-### 1. Prerequisites
-- **Java 17+** (`java -version`)
-- **Maven 3.8+** (or use the included `./mvnw`)
-- **Node.js 18+** & **npm**
-- **MongoDB** running locally (`localhost:27017`) or a free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster URI
-
----
-
-### 2. Backend Setup (Spring Boot)
-
+Linux, macOS or Git Bash:
 ```bash
-# Navigate to backend directory
 cd server
-
-# Set environment variables (generate a 32-byte secret with openssl)
-export MONGODB_URI="mongodb+srv://<username>:<password>@cluster0.mongodb.net/vaultflow?retryWrites=true&w=majority"
+export MONGODB_URI="mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/vaultflow?retryWrites=true&w=majority"
 export JWT_SECRET="$(openssl rand -hex 32)"
-export CORS_ALLOWED_ORIGINS="http://localhost:3000,http://localhost:5173"
-
-# Run automated test suite (36 tests)
+export CORS_ALLOWED_ORIGINS="http://localhost:5173"
 ./mvnw test
-
-# Start the Spring Boot REST API
 ./mvnw spring-boot:run
 ```
 
-The Spring Boot backend will start on **`http://localhost:8080`**.
+Windows PowerShell:
+```powershell
+cd server
+$env:MONGODB_URI = "mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/vaultflow?retryWrites=true&w=majority"
+$env:JWT_SECRET = "<paste a generated secret>"
+$env:CORS_ALLOWED_ORIGINS = "http://localhost:5173"
+.\mvnw.cmd test
+.\mvnw.cmd spring-boot:run
+```
 
----
+The API starts on `http://localhost:8080`. A successful start prints `Started VaultFlowApplication`.
 
-### 3. Frontend Setup (React)
+### 2. Frontend
+
+In a second terminal:
 
 ```bash
-# In a new terminal, navigate to client directory
 cd client
-
-# Install dependencies (no flags required)
+cp .env.example .env        # PowerShell: Copy-Item .env.example .env
 npm install
-
-# Start Vite development server
 npm run dev
 ```
 
-The React frontend will start on **`http://localhost:5173`**.
+The app opens on `http://localhost:5173`.
 
 ---
 
-## 🧪 Automated Backend Tests (36 Tests)
+## Database Setup (MongoDB Atlas)
 
-The backend test suite (`server/src/test/java/com/vaultflow/`) includes **36 automated tests**:
+1. Create a free **M0** cluster.
+2. Under **Database Access**, create a database user with a password. Letters and numbers only keeps the connection string simple. Special characters must be URL-encoded.
+3. Under **Network Access**, add an entry for `0.0.0.0/0`. Render's free tier has no fixed outgoing IP, so a single address cannot be allow-listed. The database is still protected by its username and password, and the API by JWT login.
+4. Copy the connection string from **Connect → Drivers**, put your password in, and add `/vaultflow` before the `?`.
+
+The `vaultflow` database and its `users`, `transactions` and `budgets` collections are created automatically on first use.
+
+**Troubleshooting:** if startup fails with `SSLException ... internal_error` or a server selection timeout, Atlas is almost always rejecting your IP address. Check the Network Access list.
+
+---
+
+## Automated Tests
 
 ```bash
 cd server
-./mvnw test
+./mvnw test        # Windows: .\mvnw.cmd test
 ```
 
-### Verified Scenarios:
-1. **AuthControllerTest (7 tests)**:
-   - Registration success returns `201 Created` with signed token
-   - Password under 8 characters returns `400 Bad Request`
-   - Duplicate email race condition handled with `409 Conflict`
-   - Login success with correct credentials returns `200 OK`
-   - Login with wrong password returns `401 Unauthorized`
-   - Login with non-existent email returns `401 Unauthorized`
-   - Unhandled server exception returns `500` with generic sanitized message
-2. **TransactionSecurityIntegrationTest (8 tests)**:
-   - Real `JwtAuthFilter` authenticates valid User A token and returns transactions (`200 OK`)
-   - Real `JwtAuthFilter` rejects token signed with a different secret (`401 Unauthorized`)
-   - Real `JwtAuthFilter` rejects expired token (`401 Unauthorized`)
-   - Real `JwtAuthFilter` rejects token for deleted/non-existent user ID (`401 Unauthorized`)
-   - User A accessing or deleting User B's transaction returns `404 Not Found` (information leak prevented)
-   - POST transaction with invalid calendar date like `2026-13-45` returns `400 Bad Request`
-   - POST transaction with malformed JSON returns `400 Bad Request`
-   - Unsupported HTTP method on `/api/transactions` returns `405 Method Not Allowed`
-3. **TransactionControllerTest (7 tests)**:
-   - `GET /api/transactions` without token returns `401 Unauthorized`
-   - Valid token returns user transactions with total count
-   - Invalid `startDate` format returns `400 Bad Request`
-   - `startDate` after `endDate` returns `400 Bad Request`
-   - Unowned transaction delete returns `404 Not Found`
-   - User can delete own transaction (`200 OK`)
-   - Negative transaction amount returns `400 Bad Request` validation failure
-4. **BudgetControllerTest (6 tests)**:
-   - `GET /api/budgets` without token returns `401 Unauthorized`
-   - Valid token returns user's category budgets (`200 OK`)
-   - Upsert category budget saves with `BigDecimal` limit (`200 OK`)
-   - Concurrent insert race recovery: catches `DuplicateKeyException`, re-reads and updates budget (`200 OK`)
-   - User A cannot delete User B's budget -> returns `404 Not Found`
-   - User A can delete own budget (`200 OK`)
-5. **TransactionServiceTest (4 tests)**:
-   - Captures MongoDB `Query` via `ArgumentCaptor` and verifies `Pattern.quote` for regex metacharacters `(` and `.*`
-   - Invalid `startDate` format throws `BadRequestException`
-   - Invalid `endDate` format throws `BadRequestException`
-   - `startDate` after `endDate` throws `BadRequestException`
-6. **JwtUtilsTest (4 tests)**:
-   - Generates signed HS256 tokens and extracts claims correctly
-   - Tampered signature fails validation
-   - Expired token fails validation
-   - Secret shorter than 32 bytes throws `IllegalStateException` on startup
+The suite has **46 tests**:
+
+| Test class | Tests | What it covers |
+| :--- | :---: | :--- |
+| `AuthControllerTest` | 7 | Register success, short password 400, duplicate email 409, login success, wrong password 401, unknown email 401, generic 500 hides details |
+| `RegisterValidationControllerTest` | 6 | Numeric, mixed, symbol and one-letter names rejected; hyphenated, apostrophe, periods and Bengali names accepted; password over 72 characters rejected |
+| `ProfileUpdateControllerTest` | 4 | Profile update needs a token, uses the id from the token, rejects negative balance, rejects invalid currency |
+| `TransactionSecurityIntegrationTest` | 8 | Real JWT filter: valid token works; wrong-secret, expired and unknown-user tokens give 401; cross-user access 404; impossible date 400; malformed JSON 400; wrong HTTP method 405 |
+| `TransactionControllerTest` | 7 | 401 without token, user isolation, date filter errors, own-record delete, negative amount rejected |
+| `BudgetControllerTest` | 6 | 401 without token, create and update, duplicate-insert race recovery, user isolation |
+| `TransactionServiceTest` | 4 | Search text is quoted as a literal, bad date formats and reversed ranges rejected |
+| `JwtUtilsTest` | 4 | Claims, tampered signature, expiry, short-key startup failure |
+
+The tests run without a database: repositories are mocked and the MongoDB auto-configuration is switched off in `application-test.properties`.
 
 ---
 
-## ☁️ Deployment Guide
+## Deployment
 
-### A. Deploy Backend to Render or Railway
+Deploy the **backend first**, because the frontend needs its URL.
 
-1. Create a new **Web Service** on [Render](https://render.com) or [Railway](https://railway.app).
-2. Point to this repository and set **Root Directory** to `server`.
-3. Choose **Docker** environment. Render will use `server/Dockerfile` (Stage 1 uses `maven:3.9-eclipse-temurin-17` to run `mvn -q -DskipTests package`; Stage 2 uses `eclipse-temurin:17-jre` to run the jar with `-Duser.timezone=UTC`, listening on `$PORT`).
-4. Set Environment Variables:
-   - `MONGODB_URI`: Your MongoDB connection string.
-   - `JWT_SECRET`: Random 32-byte secret generated via `openssl rand -hex 32`.
-   - `JWT_EXPIRATION_MS`: `604800000`
-   - `CORS_ALLOWED_ORIGINS`: Your Vercel domain (e.g., `https://vaultflow.vercel.app`).
-   - `PORT`: `8080`
-5. Deploy.
+### 1. Backend on Render
+
+1. Create a **Web Service** from this repository.
+2. Set **Root Directory** to `server` and the environment to **Docker**. Render builds `server/Dockerfile`: stage one runs Maven, stage two runs the jar on a JRE 17 image with `-Duser.timezone=UTC`.
+3. Add environment variables:
+    - `MONGODB_URI`
+    - `JWT_SECRET` (use a new secret for production, not the one from your machine)
+    - `CORS_ALLOWED_ORIGINS` (your Vercel URL once you have it; use `http://localhost:5173` for the first deploy)
+4. Do not set `PORT`. Render provides it.
+5. Deploy. Opening `/api/transactions` without a token should return a JSON `401`, which confirms the server is up and protected.
+
+### 2. Frontend on Vercel
+
+1. Import the repository and set **Root Directory** to `client`.
+2. Framework preset **Vite**, build command `npm run build`, output directory `dist`.
+3. Add `VITE_API_URL` set to your Render URL, without a trailing slash.
+4. Deploy. `client/vercel.json` rewrites all routes to `index.html`.
+
+### 3. Connect them
+
+Go back to Render and change `CORS_ALLOWED_ORIGINS` to the exact Vercel URL (`https://...`, no trailing slash). Render redeploys. A CORS error in the browser almost always means this value does not match exactly.
 
 ---
 
-### B. Deploy Frontend to Vercel
+## Known Limitations
 
-1. Import this repository into [Vercel](https://vercel.com).
-2. Set **Root Directory** to `client`.
-3. Framework Preset: **Vite**.
-4. Build Command: `npm run build`.
-5. Output Directory: `dist`.
-6. Set Environment Variables:
-   - `VITE_API_URL`: Your Render backend service URL (e.g. `https://vaultflow-api.onrender.com`).
-7. Deploy (uses `client/vercel.json` for SPA rewrites).
+- **Cold starts.** Render's free tier sleeps when idle, so the first request can be slow.
+- **"Current month" on the dashboard** means the month of your most recent transaction, not necessarily today's month. The budget and savings cards use it.
+- **One currency per account.** Changing the currency changes the display symbol. It does not convert existing amounts.
+- **No password reset or email verification.**
+- **JWT is kept in `localStorage`,** which is simple but exposed to cross-site scripting if the page were ever compromised. A production system might use httpOnly cookies and refresh tokens.
+- **Atlas network access is open (`0.0.0.0/0`)** because the hosting tier has no fixed IP. Credentials protect the database.
