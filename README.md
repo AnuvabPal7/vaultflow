@@ -76,7 +76,7 @@ vaultflow/
 │   ├── .gitignore
 │   ├── mvnw / mvnw.cmd                    # Maven wrapper (no Maven install needed)
 │   └── src/
-│       ├── main/
+│       └── main/
 │       │   ├── java/com/vaultflow/
 │       │   │   ├── VaultFlowApplication.java
 │       │   │   ├── config/SecurityConfig.java       # Filter chain, CORS, stateless sessions
@@ -88,7 +88,6 @@ vaultflow/
 │       │   │   ├── security/                        # JwtUtils, JwtAuthFilter, UserPrincipal, CustomUserDetailsService
 │       │   │   └── exception/                       # GlobalExceptionHandler and custom exceptions
 │       │   └── resources/application.properties
-│       └── test/                                    # Automated tests (see below)
 │
 ├── .env.example                           # Environment template with placeholder values
 ├── .gitignore
@@ -186,7 +185,6 @@ cd server
 export MONGODB_URI="mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/vaultflow?retryWrites=true&w=majority"
 export JWT_SECRET="$(openssl rand -hex 32)"
 export CORS_ALLOWED_ORIGINS="http://localhost:5173"
-./mvnw test
 ./mvnw spring-boot:run
 ```
 
@@ -196,7 +194,6 @@ cd server
 $env:MONGODB_URI = "mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/vaultflow?retryWrites=true&w=majority"
 $env:JWT_SECRET = "<paste a generated secret>"
 $env:CORS_ALLOWED_ORIGINS = "http://localhost:5173"
-.\mvnw.cmd test
 .\mvnw.cmd spring-boot:run
 ```
 
@@ -227,30 +224,6 @@ The app opens on `http://localhost:5173`.
 The `vaultflow` database and its `users`, `transactions` and `budgets` collections are created automatically on first use.
 
 **Troubleshooting:** if startup fails with `SSLException ... internal_error` or a server selection timeout, Atlas is almost always rejecting your IP address. Check the Network Access list.
-
----
-
-## Automated Tests
-
-```bash
-cd server
-./mvnw test        # Windows: .\mvnw.cmd test
-```
-
-The suite has **46 tests**:
-
-| Test class | Tests | What it covers |
-| :--- | :---: | :--- |
-| `AuthControllerTest` | 7 | Register success, short password 400, duplicate email 409, login success, wrong password 401, unknown email 401, generic 500 hides details |
-| `RegisterValidationControllerTest` | 6 | Numeric, mixed, symbol and one-letter names rejected; hyphenated, apostrophe, periods and Bengali names accepted; password over 72 characters rejected |
-| `ProfileUpdateControllerTest` | 4 | Profile update needs a token, uses the id from the token, rejects negative balance, rejects invalid currency |
-| `TransactionSecurityIntegrationTest` | 8 | Real JWT filter: valid token works; wrong-secret, expired and unknown-user tokens give 401; cross-user access 404; impossible date 400; malformed JSON 400; wrong HTTP method 405 |
-| `TransactionControllerTest` | 7 | 401 without token, user isolation, date filter errors, own-record delete, negative amount rejected |
-| `BudgetControllerTest` | 6 | 401 without token, create and update, duplicate-insert race recovery, user isolation |
-| `TransactionServiceTest` | 4 | Search text is quoted as a literal, bad date formats and reversed ranges rejected |
-| `JwtUtilsTest` | 4 | Claims, tampered signature, expiry, short-key startup failure |
-
-The tests run without a database: repositories are mocked and the MongoDB auto-configuration is switched off in `application-test.properties`.
 
 ---
 
