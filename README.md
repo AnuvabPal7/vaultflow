@@ -15,13 +15,24 @@ A full-stack personal finance tracker. Users register, log in, record income and
 
 The backend runs on Render's free tier, which sleeps when idle. The first request after a quiet period can take 30 to 60 seconds. Please wait for the first login or signup to finish, and the rest is fast.
 
-<!--
+---
+
 ## Screenshots
-Add images to docs/screenshots/ and uncomment these lines:
-![Dashboard](docs/screenshots/dashboard.png)
-![Budgets](docs/screenshots/budgets.png)
-![Transactions](docs/screenshots/transactions.png)
--->
+
+### Dashboard
+Summary cards, category breakdown and monthly income vs. expenses.
+
+![Dashboard](screenshots/dashboard.png)
+
+### Transactions
+Search, type and category filters, sorting, and per-row edit and delete.
+
+![Transactions](screenshots/transactions.png)
+
+### Protected API
+Calling the API without a token returns a JSON 401, so data is never exposed.
+
+![Protected API](screenshots/protected-api.png)
 
 ---
 
@@ -75,20 +86,20 @@ vaultflow/
 │   ├── .dockerignore
 │   ├── .gitignore
 │   ├── mvnw / mvnw.cmd                    # Maven wrapper (no Maven install needed)
-│   └── src/
-│       └── main/
-│       │   ├── java/com/vaultflow/
-│       │   │   ├── VaultFlowApplication.java
-│       │   │   ├── config/SecurityConfig.java       # Filter chain, CORS, stateless sessions
-│       │   │   ├── controller/                      # AuthController, TransactionController, BudgetController
-│       │   │   ├── service/                         # AuthService, TransactionService, BudgetService
-│       │   │   ├── repository/                      # User, Transaction and Budget repositories
-│       │   │   ├── model/                           # User, Transaction, Budget documents
-│       │   │   ├── dto/                             # Request/response objects with validation
-│       │   │   ├── security/                        # JwtUtils, JwtAuthFilter, UserPrincipal, CustomUserDetailsService
-│       │   │   └── exception/                       # GlobalExceptionHandler and custom exceptions
-│       │   └── resources/application.properties
+│   └── src/main/
+│       ├── java/com/vaultflow/
+│       │   ├── VaultFlowApplication.java
+│       │   ├── config/SecurityConfig.java       # Filter chain, CORS, stateless sessions
+│       │   ├── controller/                      # AuthController, TransactionController, BudgetController
+│       │   ├── service/                         # AuthService, TransactionService, BudgetService
+│       │   ├── repository/                      # User, Transaction and Budget repositories
+│       │   ├── model/                           # User, Transaction, Budget documents
+│       │   ├── dto/                             # Request/response objects with validation
+│       │   ├── security/                        # JwtUtils, JwtAuthFilter, UserPrincipal, CustomUserDetailsService
+│       │   └── exception/                       # GlobalExceptionHandler and custom exceptions
+│       └── resources/application.properties
 │
+├── screenshots/                           # Images used in this README
 ├── .env.example                           # Environment template with placeholder values
 ├── .gitignore
 └── README.md
@@ -236,9 +247,9 @@ Deploy the **backend first**, because the frontend needs its URL.
 1. Create a **Web Service** from this repository.
 2. Set **Root Directory** to `server` and the environment to **Docker**. Render builds `server/Dockerfile`: stage one runs Maven, stage two runs the jar on a JRE 17 image with `-Duser.timezone=UTC`.
 3. Add environment variables:
-    - `MONGODB_URI`
-    - `JWT_SECRET` (use a new secret for production, not the one from your machine)
-    - `CORS_ALLOWED_ORIGINS` (your Vercel URL once you have it; use `http://localhost:5173` for the first deploy)
+   - `MONGODB_URI`
+   - `JWT_SECRET` (use a new secret for production, not the one from your machine)
+   - `CORS_ALLOWED_ORIGINS` (your Vercel URL once you have it; use `http://localhost:5173` for the first deploy)
 4. Do not set `PORT`. Render provides it.
 5. Deploy. Opening `/api/transactions` without a token should return a JSON `401`, which confirms the server is up and protected.
 
@@ -257,6 +268,7 @@ Go back to Render and change `CORS_ALLOWED_ORIGINS` to the exact Vercel URL (`ht
 
 ## Known Limitations
 
+- **No automated test suite yet.** The app has been tested by hand against the live deployment. Adding backend tests (JWT handling, user isolation, validation) is a planned improvement.
 - **Cold starts.** Render's free tier sleeps when idle, so the first request can be slow.
 - **"Current month" on the dashboard** means the month of your most recent transaction, not necessarily today's month. The budget and savings cards use it.
 - **One currency per account.** Changing the currency changes the display symbol. It does not convert existing amounts.
